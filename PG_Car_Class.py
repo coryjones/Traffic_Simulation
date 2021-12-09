@@ -15,9 +15,6 @@ class Car:
         self.color = car_color
         self.angle = angle0
 
-    def get_xpos(self):
-        return self.x
-
     def get_velo(self):
         return self.v
     
@@ -29,6 +26,12 @@ class Car:
 
     def get_angle(self):
         return self.angle
+
+    def set_acc(self, set_acc):
+        self.a = set_acc
+
+    def set_velo(self, set_velo):
+        self.a = set_velo
 
     def print_summary(self):
         # Originally used when I had a 1D simulation, not corrected for a circular track
@@ -43,12 +46,15 @@ class Car:
         """
 
         self.v += self.a*np.pi/180
-        self.angle += self.v*np.pi/180
 
+        if self.v < 0:
+            self.v = 0
+        elif self.v > self.max_speed:
+            self.v = self.max_speed
 
-        # Will convert this to % for update 2 
-        if self.angle >= 2*np.pi:
-            self.angle -= 2*np.pi
+        self.angle += self.v
 
-        self.x = np.cos(self.angle)*track_radius + screen_width/2
-        self.y = np.sin(self.angle)*track_radius + screen_height/2
+        self.angle = self.angle % 360
+
+        self.x = np.cos(self.angle * np.pi/180)*track_radius + screen_width/2
+        self.y = np.sin(self.angle * np.pi/180)*track_radius + screen_height/2
