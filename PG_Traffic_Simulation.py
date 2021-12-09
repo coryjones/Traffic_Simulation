@@ -1,6 +1,8 @@
 import numpy as np
 import pygame
 from PG_Car_Class import Car
+import random
+import time
 
 
 """
@@ -51,21 +53,26 @@ def draw_track():
 
 
 
-number_of_cars = 4
+number_of_cars = 5
 my_cars = []
 
 color_list = ["blue", "red", "green", "purple", "white"]
 
 # Generating all of the cars
 for n in range(number_of_cars):
-    starting_angle = 2*np.pi - n*(2*np.pi)/(number_of_cars)
-    starting_x = np.cos(starting_angle)*track_radius + screen_width/2
-    starting_y = np.sin(starting_angle)*track_radius + screen_height/2
+    # starting_angle = 2*np.pi + n*(2*np.pi)/(number_of_cars) + (random.randint(-100, 100)/number_of_cars)*np.pi/180
+    starting_angle = 360 + n*(360)/(number_of_cars) + (random.randint(-100, 100)/number_of_cars)
+    starting_x = np.cos(starting_angle * np.pi/180)*track_radius + screen_width/2
+    starting_y = np.sin(starting_angle * np.pi/180)*track_radius + screen_height/2
+
+    starting_v = random.randint(0,3)
+    starting_acc = random.randint(0,5)
 
 
-    car = Car(1, starting_x, starting_y, 0.5, 2, starting_angle, 20, 40, -20, 10, color_list[n])
+    car = Car(1, starting_x, starting_y, starting_v, starting_acc, starting_angle, 20, 40, -20, 10, color_list[n])
 
     my_cars.append(car)
+
 
 # Printing the stats
 def draw_text(current_time):
@@ -94,12 +101,12 @@ pygame.display.set_caption("Traffic Simulation")
 screen.fill(background_color)
 
 # Time counter
-time = 0
+current_time = 0
 
 # Drawing the initial position
 draw_track()
 
-draw_text(time)
+draw_text(current_time)
 
 for car in my_cars:
     car.draw_car(screen)
@@ -115,21 +122,29 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         
-        # Keyboard presses advance the simulation
-        elif event.type == pygame.KEYDOWN:
-            time += 1
 
-            screen.fill(background_color)
-            draw_track()
-            draw_text(time)
+        current_time += 1
 
-            for car in my_cars:
-                car.move(track_radius, screen_width, screen_height)
-                car.draw_car(screen)
+        screen.fill(background_color)
+        draw_track()
+        draw_text(current_time)
 
-            
-            
+        for i in range(len(my_cars)):
+            car_in_front_pos = my_cars[i-number_of_cars+1].get_angle()
+
+            if car_in_front_pos <= (my_cars[i].get_angle() + my_cars[i].get_velo()) % 360:
+                my_cars[i].set_acc(-10)
+            else:
+                my_cars[i].set_acc(my_cars[i].get_acc()+1)
+
+
+            my_cars[i].move(track_radius, screen_width, screen_height)
+            my_cars[i].draw_car(screen)
+
             pygame.display.flip()
+
+            # Wait one second after every loop
+        time.sleep(1)
 
 
 
