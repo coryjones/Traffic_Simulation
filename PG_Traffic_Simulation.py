@@ -1,8 +1,8 @@
 import numpy as np
 import pygame
-from PG_Car_Class import Car
 import random
-import time
+from PG_Car_Class import Car
+
 
 
 """
@@ -36,6 +36,7 @@ pygame.init()
 # Setting Font For Printouts
 font_color=(255,255,255)
 font_obj=pygame.font.Font("/System/Library/Fonts/Supplemental/Futura.ttc",15)
+crash_font_obj=pygame.font.Font("/System/Library/Fonts/Supplemental/Futura.ttc",25)
 
 # Screen size generated with pygame
 screen_width = 750
@@ -56,20 +57,20 @@ def draw_track():
 number_of_cars = 5
 my_cars = []
 
+car_size = 20
+
 color_list = ["blue", "red", "green", "purple", "white"]
 
 # Generating all of the cars
 for n in range(number_of_cars):
     # starting_angle = 2*np.pi + n*(2*np.pi)/(number_of_cars) + (random.randint(-100, 100)/number_of_cars)*np.pi/180
-    starting_angle = 360 + n*(360)/(number_of_cars) + (random.randint(-100, 100)/number_of_cars)
+    starting_angle = 360 + n*(360)/(number_of_cars) + (random.randint(-150, 150)/number_of_cars)
     starting_x = np.cos(starting_angle * np.pi/180)*track_radius + screen_width/2
     starting_y = np.sin(starting_angle * np.pi/180)*track_radius + screen_height/2
 
     starting_v = random.randint(0,3)
-    starting_acc = random.randint(0,5)
 
-
-    car = Car(1, starting_x, starting_y, starting_v, starting_acc, starting_angle, 20, 40, -20, 10, color_list[n])
+    car = Car(1, starting_x, starting_y, starting_v, 0, starting_angle, car_size, 40, 10, color_list[n], random.randint(75, 85))
 
     my_cars.append(car)
 
@@ -89,10 +90,6 @@ def draw_text(current_time):
 
     av_velo_obj=font_obj.render(f"Average Rot. Velo: {av_velos} deg/s",True,font_color)
     screen.blit(av_velo_obj,(450,40))
-
-    
-
-
 
 
 # Setting up the pygame window
@@ -114,6 +111,7 @@ for car in my_cars:
 pygame.display.flip()
 
 
+crash_check = False
 
 # Running the simulation
 while running:
@@ -121,39 +119,50 @@ while running:
         # Allows the code to be quit
         if event.type == pygame.QUIT:
             running = False
-        
+        elif event.type == pygame.KEYDOWN:
 
-        current_time += 1
+            #Time keeper
+            current_time += 1
 
-        screen.fill(background_color)
-        draw_track()
-        draw_text(current_time)
+            screen.fill(background_color)
+            draw_track()
+            draw_text(current_time)
 
-        for i in range(len(my_cars)):
-            car_in_front_pos = my_cars[i-number_of_cars+1].get_angle()
+            # Littlest distance for each round
+            # Used as a crash checker later
+            min_distance = 1000
 
-            if car_in_front_pos <= (my_cars[i].get_angle() + my_cars[i].get_velo()) % 360:
-                my_cars[i].set_acc(-10)
-            else:
-                my_cars[i].set_acc(my_cars[i].get_acc()+1)
+            for i in range(len(my_cars)):
+                # Finding the car in front position
+                cif_x = my_cars[i-number_of_cars+1].x
+                cif_y = my_cars[i-number_of_cars+1].y
+
+                # Cartesian distance apart
+                # Had trouble using the angle as distance control because of the circular nature
+                # (Tough to compare 355 to 5)
+                distance_apart = np.sqrt((my_cars[i].x - cif_x)**2 + (my_cars[i].y- cif_y)**2)
+
+                #
+                if distance_apart < my_cars[i].chicken_factor:
+                    my_cars[i].set_acc(-15)
+                elif distance_apart <= 1.25*my_cars[i].chicken_factor:
+                    my_cars[i].set_acc(0)
+                else:
+                    my_cars[i].set_acc(my_cars[i].a+1.5)
 
 
-            my_cars[i].move(track_radius, screen_width, screen_height)
-            my_cars[i].draw_car(screen)
+
+                my_cars[i].move(track_radius, screen_width, screen_height)
+                my_cars[i].draw_car(screen)
+
+                if distance_apart < min_distance:
+                    min_distance = distance_apart
+
+            if min_distance < car_size * 2.35:
+                crash_obj=crash_font_obj.render(f"CRASH!  Game Over",True, "Red")
+                screen.blit(crash_obj,(0, 0))
+                crash_check = True
 
             pygame.display.flip()
 
-            # Wait one second after every loop
-        time.sleep(1)
-
-
-
-"""
-Update 3 Todo
-
-Initialized at random spots
-
-Doubly linked list (look this up)
-"""
-
-
+                    
