@@ -2,7 +2,7 @@ import pygame
 import numpy as np
 # Can make this class its own file, improves readability of the code
 class Car:
-    def __init__(self, number, x0, y0, v0, a0, angle0, car_size, max_speed, max_neg_acc, max_pos_acc, car_color):
+    def __init__(self, number, x0, y0, v0, a0, angle0, car_size, max_speed, max_pos_acc, car_color, chicken):
         self.number = number
         self.x = x0
         self.y = y0
@@ -10,10 +10,10 @@ class Car:
         self.a = a0
         self.size = car_size
         self.max_speed = max_speed
-        self.max_neg_acc = max_neg_acc
         self.max_pos_acc = max_pos_acc
         self.color = car_color
         self.angle = angle0
+        self.chicken_factor = chicken
 
     def get_velo(self):
         return self.v
@@ -27,11 +27,20 @@ class Car:
     def get_angle(self):
         return self.angle
 
+    def get_x(self):
+        return self.x
+
+    def get_y(self):
+        return self.y
+
+    def get_chicken(self):
+        return self.chicken_factor
+
+    def get_size(self):
+        return self.size
+
     def set_acc(self, set_acc):
         self.a = set_acc
-
-    def set_velo(self, set_velo):
-        self.a = set_velo
 
     def print_summary(self):
         # Originally used when I had a 1D simulation, not corrected for a circular track
@@ -44,6 +53,9 @@ class Car:
         """
         Should put all of this functionality elsewhere instead of a method in the class
         """
+
+        if self.a > self.max_pos_acc:
+            self.a = self.max_pos_acc
 
         self.v += self.a*np.pi/180
 
