@@ -70,7 +70,10 @@ for n in range(number_of_cars):
 
     starting_v = random.randint(0,3)
 
-    car = Car(1, starting_x, starting_y, starting_v, 0, starting_angle, car_size, 40, 10, color_list[n], random.randint(75, 85))
+    c=random.randomint(0,4)
+    carcolor=color_list[c]
+
+    car = Car(1, starting_x, starting_y, starting_v, 0, starting_angle, car_size, 40, 10, carcolor, random.randint(75, 85))
 
     my_cars.append(car)
 
